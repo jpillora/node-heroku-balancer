@@ -5,6 +5,8 @@ var APP_NAME = process.env.APP_NAME || 'node-load-tester';
 var BASE_DOMAIN = process.env.BASE_DOMAIN || '.herokuapp.com';
 var NUM_INSTANCES = parseInt(process.env.INSTANCES,10) || 3;
 
+console.log("Starting balancer '%s%s' with %s instances", APP_NAME,BASE_DOMAIN,NUM_INSTANCES);
+
 // DEPLOY DIR 'git@heroku.com:NAME-INSTANCEID.git'
 // var AUTH_KEY = new Buffer(":"+process.env.API_KEY).toString('base64');
 
@@ -26,7 +28,7 @@ var server = httpProxy.createServer(function (req, res, proxy) {
   proxy.proxyRequest(req, res, { host: hostname, port: 80 });
 
   //increment
-  curr = (curr > NUM_INSTANCES) ? 1 : curr+1;
+  curr = (curr+1 > NUM_INSTANCES) ? 1 : curr+1;
 });
 
 var port = process.env.PORT || 3000;
