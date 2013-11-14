@@ -5,7 +5,6 @@
   "author": "Jaime Pillora",
   "license": "MIT",
   "dependencies": {
-    "http-proxy": "~0.10.2",
     "bouncy": "~3.2.1"
   }
 }
