@@ -1,0 +1,11 @@
+{
+  "name": "heroku-balance",
+  "version": "0.1.0",
+  "main": "balancer.js",
+  "author": "Jaime Pillora",
+  "license": "MIT",
+  "dependencies": {
+    "http-proxy": "~0.10.2",
+    "bouncy": "~3.2.1"
+  }
+}
