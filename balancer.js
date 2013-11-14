@@ -7,28 +7,34 @@ var NUM_INSTANCES = parseInt(process.env.INSTANCES,10) || 3;
 
 console.log("Starting balancer '%s%s' with %s instances", APP_NAME,BASE_DOMAIN,NUM_INSTANCES);
 
+var totalRequests = 0;
+var totalPings = 0;
 // DEPLOY DIR 'git@heroku.com:NAME-INSTANCEID.git'
 // var AUTH_KEY = new Buffer(":"+process.env.API_KEY).toString('base64');
 
-var curr = 1;
+var proxyCtr = counter(1, NUM_INSTANCES);
 
 var server = httpProxy.createServer(function (req, res, proxy) {
 
   if(req.url === '/__balancer_stats') {
-    var json = JSON.stringify({ pings: totalPings, up: up.toString() }, null, 2);
+    var json = JSON.stringify({
+      requests: totalRequests,
+      pings: totalPings,
+      up: up.toString(),
+      APP_NAME: APP_NAME,
+      BASE_DOMAIN: BASE_DOMAIN,
+      NUM_INSTANCES: NUM_INSTANCES,
+      env: process.env
+    }, null, 2);
     res.writeHead(200, 'application/json');
     res.end(json);
     return;
   }
 
-  var hostname = APP_NAME + "-" + curr + BASE_DOMAIN;
-  console.log('Bounce to #%s: %s', curr, hostname);
-
+  totalRequests++;
+  var hostname = APP_NAME + "-" + proxyCtr() + BASE_DOMAIN;
   req.headers.host = hostname;
   proxy.proxyRequest(req, res, { host: hostname, port: 80 });
-
-  //increment
-  curr = (curr+1 > NUM_INSTANCES) ? 1 : curr+1;
 });
 
 var port = process.env.PORT || 3000;
@@ -38,13 +44,11 @@ server.listen(port, function() {
 });
 
 var http = require('http');
-var currPing = 1;
-var totalPings = 0;
+var pingCtr = counter(1, NUM_INSTANCES);
 
 function ping() {
   totalPings++;
-  var hostname = APP_NAME + "-" + currPing + BASE_DOMAIN;
-  currPing = (currPing > NUM_INSTANCES) ? 1 : currPing+1;
+  var hostname = APP_NAME + "-" + pingCtr() + BASE_DOMAIN;
   var req = http.request({
     hostname: hostname,
     port: 80,
@@ -61,3 +65,12 @@ function ping() {
   req.end();
   
 }
+
+function counter(min, max) {
+  var curr = min-1;
+  return function() {
+    curr = (curr+1 > max) ? min : curr+1;
+    return curr;
+  };
+}
+
